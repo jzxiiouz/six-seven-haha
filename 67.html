@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Keypad Lock</title>
+  <style>
+    /* Page: completely white except the image and keypad */
+    html,body{height:100%;margin:0;background:#ffffff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
+    .container{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:24px 0;}
+
+    /* Image at the top */
+    .top-image{width:320px;max-width:90%;height:auto;display:block;margin-top:8px;}
+
+    /* Keypad fixed at bottom */
+    .keypad{width:360px;max-width:92%;background:transparent;padding:16px;border-radius:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;}
+    .btn{appearance:none;border:1px solid rgba(0,0,0,0.08);background:#ffffff;padding:18px 0;border-radius:10px;font-size:20px;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,0.03);}
+    .btn:active{transform:translateY(1px)}
+
+    /* small visual input inside keypad (keeps only the two visible elements overall) */
+    .display{grid-column:1/-1;display:flex;justify-content:center;align-items:center;height:40px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);font-weight:600;letter-spacing:3px}
+
+    /* wrong animation */
+    @keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-6px)}100%{transform:translateX(0)}}
+    .wrong{animation:shake .45s ease}
+
+    /* keep everything minimal and white */
+    img,button{background:transparent}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- IMAGE (only visible element at top) -->
+    <!-- This SVG is embedded so there are no extra network requests. Replace src if you prefer a different image. -->
+    <img class="top-image" src="kiddo.jpg" alt="Top image">
+
+    <!-- keypad (only visible element at bottom) -->
+    <div class="keypad" id="keypad">
+      <div class="display" id="display">&nbsp;</div>
+      <button class="btn" data-key="1">1</button>
+      <button class="btn" data-key="2">2</button>
+      <button class="btn" data-key="3">3</button>
+      <button class="btn" data-key="4">4</button>
+      <button class="btn" data-key="5">5</button>
+      <button class="btn" data-key="6">6</button>
+      <button class="btn" data-key="7">7</button>
+      <button class="btn" data-key="8">8</button>
+      <button class="btn" data-key="9">9</button>
+      <button class="btn" data-key="back">⌫</button>
+      <button class="btn" data-key="0">0</button>
+      <button class="btn" data-key="enter">↵</button>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const correct = '67'; // only correct code
+      const display = document.getElementById('display');
+      const keypad = document.getElementById('keypad');
+      let value = '';
+
+      function render(){
+        if(value.length === 0) display.innerHTML = '&nbsp;';
+        else display.textContent = value.split('').map(()=>'•').join('');
+      }
+
+      function wrongFeedback(){
+        keypad.classList.remove('wrong');
+        // trigger reflow to restart animation
+        void keypad.offsetWidth;
+        keypad.classList.add('wrong');
+        value = '';
+        render();
+      }
+
+      keypad.addEventListener('click', e =>{
+        const btn = e.target.closest('button');
+        if(!btn) return;
+        const key = btn.getAttribute('data-key');
+        if(key === 'back'){
+          value = value.slice(0,-1);
+          render();
+          return;
+        }
+        if(key === 'enter'){
+          if(value === correct){
+            // redirect to YouTube when correct
+            window.location.href = 'https://www.youtube.com/watch?v=5gsp7eNmT-c';
+          } else {
+            // wrong code — give a visual cue and clear
+            wrongFeedback();
+          }
+          return;
+        }
+
+        // only accept digits and max length 2
+        if(/^[0-9]$/.test(key) && value.length < 2){
+          value += key;
+          render();
+        }
+      });
+
+      // allow keyboard input (optional)
+      window.addEventListener('keydown', e =>{
+        if(e.key === 'Enter'){
+          if(value === correct) window.location.href = 'https://www.youtube.com/watch?v=5gsp7eNmT-c';
+          else wrongFeedback();
+          return;
+        }
+        if(e.key === 'Backspace'){
+          value = value.slice(0,-1); render(); return;
+        }
+        if(/^[0-9]$/.test(e.key) && value.length < 2){ value += e.key; render(); }
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
